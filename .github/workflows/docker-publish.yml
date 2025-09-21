@@ -1,0 +1,58 @@
+# 워크플로우의 이름
+name: Docker Image CI/CD for What-To-Eat
+
+# 워크플로우가 실행될 조건: main 브랜치에 push가 발생했을 때
+on:
+  push:
+    branches: [ "main" ]
+
+# 실행될 작업(Job)들 정의
+jobs:
+  build-and-push:
+    # 작업이 실행될 환경
+    runs-on: ubuntu-latest
+
+    # 작업의 단계(Step)들
+    steps:
+      # 1. 레пози토리 코드 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Docker Hub 로그인
+      # 저장해 둔 Secrets를 사용하여 로그인합니다.
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3. Docker 이미지 메타데이터 설정 (태그 등)
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/what-to-eat-client
+            ${{ secrets.DOCKERHUB_USERNAME }}/what-to-eat-server
+
+      # 4. 백엔드(서버) Docker 이미지 빌드 및 푸시
+      - name: Build and push Server Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: true
+          # 태그 예시: your-username/what-to-eat-server:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/what-to-eat-server:latest
+          labels: ${{ steps.meta.outputs.labels }}
+
+      # 5. 프론트엔드(클라이언트) Docker 이미지 빌드 및 푸시
+      - name: Build and push Client Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./client
+          file: ./client/Dockerfile
+          push: true
+          # 태그 예시: your-username/what-to-eat-client:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/what-to-eat-client:latest
+          labels: ${{ steps.meta.outputs.labels }}
