@@ -16,7 +16,7 @@ function App() {
   useEffect(() => {
     const fetchFoods = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/foods');
+        const response = await fetch('/api/foods');
         const data: FoodMenu = await response.json();
         setFoodMenu(data);
       } catch (error) {
