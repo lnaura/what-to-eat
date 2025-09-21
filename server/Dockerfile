@@ -7,8 +7,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# 프로덕션용 의존성만 설치
-RUN npm install --only=production
+RUN npm install
 
 # 소스 코드 복사
 COPY . .
@@ -21,9 +20,13 @@ RUN npm run build
 FROM node:18-alpine
 
 WORKDIR /app
+# 3. (중요) 프로덕션용 node_modules만 다시 설치
+# 최종 이미지에는 불필요한 devDependencies를 제외하기 위해
+# package.json을 먼저 복사하고 --only=production으로 재설치합니다.
+COPY package*.json ./
+RUN npm install --only=production
 
-# 빌드 스테이지에서 설치된 node_modules와 컴파일된 코드만 복사
-COPY --from=builder /app/node_modules ./node_modules
+# 빌드 스테이지에서 컴파일된 코드만 복사
 COPY --from=builder /app/dist ./dist
 
 # 서버는 3001번 포트를 사용
