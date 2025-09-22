@@ -56,28 +56,28 @@ jobs:
           # 태그 예시: your-username/what-to-eat-client:latest
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/what-to-eat-client:latest
           labels: ${{ steps.meta.outputs.labels }}
-  # 👇 2. 쿠버네티스 배포 작업 (새로 추가)
-  deploy-to-k8s:
-    # 'build-and-push' 작업이 성공해야만 이 작업이 실행됩니다.
-    needs: build-and-push
-    runs-on: ubuntu-latest
+  # # 👇 2. 쿠버네티스 배포 작업 (새로 추가)
+  # deploy-to-k8s:
+  #   # 'build-and-push' 작업이 성공해야만 이 작업이 실행됩니다.
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Deploy to Kubernetes Cluster
-        # SSH 원격 접속을 도와주는 액션
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          port: ${{ secrets.VM_PORT }}
-          # VM에 접속해서 실행할 명령어들
-          script: |
-            # 1. 쿠버네티스 리소스를 업데이트합니다.
-            kubectl apply -f project/backend.yaml
-            kubectl apply -f project/frontend.yaml
+  #   steps:
+  #     - name: Deploy to Kubernetes Cluster
+  #       # SSH 원격 접속을 도와주는 액션
+  #       uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ secrets.VM_HOST }}
+  #         username: ${{ secrets.VM_USER }}
+  #         key: ${{ secrets.VM_SSH_KEY }}
+  #         port: ${{ secrets.VM_PORT }}
+  #         # VM에 접속해서 실행할 명령어들
+  #         script: |
+  #           # 1. 쿠버네티스 리소스를 업데이트합니다.
+  #           kubectl apply -f project/backend.yaml
+  #           kubectl apply -f project/frontend.yaml
 
-            # 2. (매우 중요) Deployment를 재시작하여 Docker Hub에서 새 이미지를 강제로 받아오게 합니다.
-            #    image 태그가 :latest로 동일해도 이 명령어로 파드를 새로 띄워야 변경사항이 반영됩니다.
-            kubectl rollout restart deployment what-to-eat-server-deployment
-            kubectl rollout restart deployment what-to-eat-client-deployment
+  #           # 2. (매우 중요) Deployment를 재시작하여 Docker Hub에서 새 이미지를 강제로 받아오게 합니다.
+  #           #    image 태그가 :latest로 동일해도 이 명령어로 파드를 새로 띄워야 변경사항이 반영됩니다.
+  #           kubectl rollout restart deployment what-to-eat-server-deployment
+  #           kubectl rollout restart deployment what-to-eat-client-deployment
